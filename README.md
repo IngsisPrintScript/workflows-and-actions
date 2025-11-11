@@ -1,6 +1,6 @@
-# IngsisPrintScript — Workflows & Actions
+# IngsisPrintScript: Workflows & Actions
 
-Repositorio centralizado para los **workflows**, **formatters**, **linters**, **checkers**, y **coverage policies** compartidas entre todos los proyectos de la organización **IngsisPrintScript**.
+Repositorio centralizado para los **workflows**, **formatters**, **linters**, **checkers**, y **coverage** compartidas entre todos los proyectos de la organización **IngsisPrintScript**.
 
 ---
 
