@@ -14,6 +14,9 @@ jobs:
       gradle-cache-key: ${{ steps.compute-key.outputs.key }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
 
       - uses: actions/setup-java@v3
         with:
@@ -42,12 +45,16 @@ jobs:
     needs: setup
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
+
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
 
-      - name: Cache Gradle (format)
+      - name: Cache Gradle
         uses: actions/cache@v4
         with:
           path: |
@@ -62,12 +69,16 @@ jobs:
     needs: setup
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
+
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
 
-      - name: Cache Gradle (analysis)
+      - name: Cache Gradle
         uses: actions/cache@v4
         with:
           path: |
@@ -82,12 +93,16 @@ jobs:
     needs: setup
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
+
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
 
-      - name: Cache Gradle (test)
+      - name: Cache Gradle
         uses: actions/cache@v4
         with:
           path: |
@@ -95,10 +110,12 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ needs.setup.outputs.gradle-cache-key }}
 
-      - run: ./gradlew test jacocoTestReport --no-daemon --stacktrace
+      - name: Run tests + Jacoco
+        run: ./gradlew test jacocoTestReport --no-daemon --stacktrace
 
       - name: Upload Jacoco coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: build/reports/jacoco/test/html
+          path: "**/build/reports/jacoco/test/html"
+          if-no-files-found: error
