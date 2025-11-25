@@ -104,5 +104,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-xml
-          path: "**/build/custom-reports/jacoco/index.xml"
+          path: "**/build/custom-reports/jacoco/jacoco.xml"
           if-no-files-found: warn
