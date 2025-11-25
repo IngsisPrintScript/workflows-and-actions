@@ -113,9 +113,16 @@ jobs:
       - name: Run tests + Jacoco
         run: ./gradlew test jacocoTestReport --no-daemon --stacktrace
 
-      - name: Upload Jacoco coverage report
+      - name: Upload Jacoco HTML reports
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: "**/build/reports/jacoco/test/html"
+          path: "**/build/jacocoHtml"
           if-no-files-found: error
+
+      - name: Upload Jacoco XML reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: "**/build/reports/jacoco/test/jacocoTestReport.xml"
+          if-no-files-found: warn

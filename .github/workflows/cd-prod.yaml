@@ -1,37 +1,37 @@
-name: CD Workflow — VM-contained services (Fail-fast)
+name: Publish Java Modules
 
 on:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      java-version:
+        type: string
+        default: "21"
 
 jobs:
-  ### /// DOWNLOAD ARTIFACTS /// ###
-  download-artifacts:
+  build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download build artifacts from CI
-        uses: actions/download-artifact@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          name: build-artifact
-          path: ./artifacts
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
 
-  ### /// SETUP ENVIRONMENT /// ###
-  setup-env:
-    runs-on: ubuntu-latest
-    needs: download-artifacts
-    steps:
-      - name: Setup environment (Staging/Production)
-        run: |
-          echo "Preparing environment variables and configuration..."
-          # export env vars or run setup scripts
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
-  ### /// START VM/// ###
+      - name: Build
+        run: ./gradlew build --no-daemon
 
-  ### /// DEPLOY APPLICATION /// ###
-
-  ### /// RUN SMOKE / INTEGRATION TESTS /// ###
-
-  ### /// STOP VM & TEARDOWN /// ###
+      - name: Publish All Modules to GitHub Packages
+        run: ./gradlew publish
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
