@@ -30,7 +30,32 @@ jobs:
       - name: Build
         run: ./gradlew build --no-daemon
 
-      - name: Publish All Modules to GitHub Packages
+      - name: Extract module list
+        id: modules
+        run: |
+          echo "modules<<EOF" >> $GITHUB_OUTPUT
+          grep "include(" settings.gradle \
+            | sed -E "s/include\\((.*)\\)/\\1/" \
+            | tr -d "'" \
+            | tr ',' '\n' \
+            | sed 's/^://; s/ //g' \
+            >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Delete previous latest versions
+        run: |
+          for module in ${{ steps.modules.outputs.modules }}
+          do
+            PKG="PrintScript.com.ingsis.${module}"
+            echo "Deleting latest version for package: $PKG"
+            gh api \
+              --method DELETE \
+              "orgs/IngsisPrintScript/packages/maven/$PKG/versions/latest" || true
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish
         run: ./gradlew publish
         env:
           GITHUB_ACTOR: ${{ github.actor }}
