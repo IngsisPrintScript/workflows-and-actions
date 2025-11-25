@@ -117,12 +117,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: "**/build/jacocoHtml"
+          path: "**/build/jacoco/html"
           if-no-files-found: error
 
       - name: Upload Jacoco XML reports
         uses: actions/upload-artifact@v4
         with:
           name: coverage-xml
-          path: "**/build/reports/jacoco/test/jacocoTestReport.xml"
+          path: "**/build/jacoco/jacoco.xml"
           if-no-files-found: warn
