@@ -33,8 +33,7 @@ jobs:
             --build-arg VITE_AUTH0_CALLBACK_URL=${{ secrets.VITE_AUTH0_CALLBACK_URL }} \
             --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
             --build-arg VITE_API_USER_BASE_URL=${{ secrets.VITE_API_USER_BASE_URL }} \
-            -t ghcr.io/ingsisprintscript/${{ inputs.image-name }}:dev . \
-          || true
+            -t ghcr.io/ingsisprintscript/${{ inputs.image-name }}:dev . 
 
       - name: Push Docker Image
         run: |
