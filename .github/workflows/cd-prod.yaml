@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Start Azure VM
-        run:  ssh -i ${{ secrets.PRIVATE_KEY }} ${{ secrets.USER }}@${{ secrets.IP }}
+        run:  ssh ${{ secrets.PRIVATE_KEY }} ${{ secrets.USER }}@${{ secrets.IP }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
