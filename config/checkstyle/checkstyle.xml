@@ -12,5 +12,23 @@
             <property name="basicOffset" value="2"/>
             <property name="tabWidth" value="4"/>
         </module>
+        <!-- Convenciones de nomenclatura -->
+        <!-- <module name="MethodName"/> -->
+        <!-- <module name="ClassName"/> -->
+        <!-- <module name="VariableName"/> -->
+        <!-- <module name="ConstantName"/> -->
+        <!-- Espacios en blanco y formato -->
+        <!-- <module name="WhitespaceAround"/> -->
+        <!-- <module name="NoWhitespaceAfter"/> -->
+        <!-- <module name="WhitespaceAfter"/> -->
+        <!-- <module name="GenericWhitespace"/> -->
+        <!-- Imports -->
+        <!-- <module name="AvoidStarImport"/> -->
+        <!-- <module name="RedundantImport"/> -->
+        <!-- <module name="UnusedImports"/> -->
+        <!-- Métodos de no más de 10 líneas -->
+        <!-- <module name="MethodLength">
+            <property name="max" value="10"/>
+        </module> -->
     </module>
 </module>
