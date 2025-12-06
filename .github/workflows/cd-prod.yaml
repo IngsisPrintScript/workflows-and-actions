@@ -6,6 +6,15 @@ on:
       java-version:
         type: string
         default: "21"
+      environment:
+        description: 'Deployment Environment'
+        required: false
+        default: 'development'
+        type: string
+      service_name:
+        description: 'Service Name to deploy (dev only)'
+        required: false
+        type: string
 
 jobs:
   build-and-publish:
@@ -18,9 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Start Azure VM
-        run:  ssh ${{ secrets.PRIVATE_KEY }} ${{ secrets.USER }}@${{ secrets.IP }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -36,3 +42,47 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-to-dev:
+    name: Deploy to Development VM
+    runs-on: ubuntu-latest
+    if: ${{ inputs.environment == 'development' && inputs.service_name != '' }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Add dev SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.PRIVATE_KEY }}
+
+      - name: Deploy Specific Service to Dev VM
+        run: |
+          IP_ADDRESS=${{ secrets.IP }}
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@$IP_ADDRESS << 'EOF'
+            set -e
+            echo "Entering infra directory"
+            cd infra-ingsis || exit 1
+
+            echo "Log in to Docker inside the VM"
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "Pull the latest image for a specific service"
+            docker compose -f docker-compose.dev.yml pull ${{ inputs.service_name }}
+
+            echo "Stopping the specific already running container"
+            docker stop ${{ inputs.service_name }} || true
+          
+            echo "Recreate the specific service container"
+            docker compose -f docker-compose.dev.yml up -d --no-deps ${{ inputs.service_name }}
+          
+            echo "Remove unused resources"
+            # docker system prune --volumes -f
+          
+            echo "Logout from ghcr.io Docker registry"
+            docker logout ghcr.io
+          
+            echo "Exiting the SSH session"
+            exit
+          EOF
