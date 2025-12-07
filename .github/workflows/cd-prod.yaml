@@ -61,6 +61,7 @@ jobs:
   deploy-to-dev:
     name: Deploy to Development VM
     runs-on: ubuntu-latest
+    needs: build-and-publish
     if: ${{ inputs.environment == 'development' }}
 
     steps:
@@ -81,6 +82,20 @@ jobs:
           fi
 
           IP_ADDRESS=${{ secrets.IP }}
+
+          echo "Waiting for the VM to enable the port 22..."
+          
+          for i in {1..30}; do
+            if nc -z $IP_ADDRESS 22; then
+              echo "SSH available"
+              break
+            fi
+            echo "Retry SSH attempt $i"
+            sleep 5
+          done
+          
+          echo "connecting by SSH"
+          
           ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@$IP_ADDRESS << 'EOF'
             set -e
             echo "Entering infra directory"
