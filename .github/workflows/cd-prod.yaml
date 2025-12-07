@@ -93,7 +93,7 @@ jobs:
             docker pull ${{ inputs.image_route }}
 
             echo "Pull the latest image for a specific service"
-            docker compose -f docker-compose.dev.yml up ${{ inputs.service_name }}
+            docker compose -f docker-compose.dev.yml up -d ${{ inputs.service_name }}
 
             echo "Exiting the SSH session"
             exit
