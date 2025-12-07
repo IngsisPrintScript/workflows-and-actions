@@ -46,7 +46,7 @@ jobs:
   deploy-to-dev:
     name: Deploy to Development VM
     runs-on: ubuntu-latest
-    if: ${{ inputs.environment == 'development' && inputs.service_name != '' }}
+    if: ${{ inputs.environment == 'development' }}
 
     steps:
       - name: Check out code
@@ -59,6 +59,12 @@ jobs:
 
       - name: Deploy Specific Service to Dev VM
         run: |
+          # If no service_name was provided, skip gracefully (avoid job being Skipped)
+          if [ -z "${{ inputs.service_name }}" ]; then
+            echo "inputs.service_name not provided — skipping deploy-to-dev job."
+            exit 0
+          fi
+
           IP_ADDRESS=${{ secrets.IP }}
           ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@$IP_ADDRESS << 'EOF'
             set -e
