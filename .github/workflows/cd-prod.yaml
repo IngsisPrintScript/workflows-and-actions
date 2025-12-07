@@ -15,6 +15,10 @@ on:
         description: 'Service Name to deploy (dev only)'
         required: false
         type: string
+      image_route:
+        description: 'Docker Image Route'
+        required: false
+        type: string
 
 jobs:
   build-and-publish:
@@ -74,21 +78,12 @@ jobs:
             echo "Log in to Docker inside the VM"
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            echo "Pull the latest image for a specific service"
-            docker compose -f docker-compose.dev.yml pull ${{ inputs.service_name }}
+            echo "Pull the latest changes from the repository"
+            docker pull ${{ inputs.image_route }}
 
-            echo "Stopping the specific already running container"
-            docker stop ${{ inputs.service_name }} || true
-          
-            echo "Recreate the specific service container"
-            docker compose -f docker-compose.dev.yml up -d --no-deps ${{ inputs.service_name }}
-          
-            echo "Remove unused resources"
-            # docker system prune --volumes -f
-          
-            echo "Logout from ghcr.io Docker registry"
-            docker logout ghcr.io
-          
+            echo "Pull the latest image for a specific service"
+            docker compose -f docker-compose.dev.yml up ${{ inputs.service_name }}
+
             echo "Exiting the SSH session"
             exit
           EOF
