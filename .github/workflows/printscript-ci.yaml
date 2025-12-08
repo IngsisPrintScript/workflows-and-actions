@@ -93,14 +93,14 @@ jobs:
       - name: Run tests + Jacoco
         run: ./gradlew test jacocoTestReport --no-daemon --stacktrace
 
-      - ##name: Upload Jacoco HTML reports
+      ##name: Upload Jacoco HTML reports
         #uses: actions/upload-artifact@v4
         #with:
         #  name: coverage-report
         #  path: "**/build/custom-reports/jacoco/html"
         #  if-no-files-found: error
 
-      - ##name: Upload Jacoco XML reports
+      ##name: Upload Jacoco XML reports
         #uses: actions/upload-artifact@v4
         #with:
         #  name: coverage-xml
