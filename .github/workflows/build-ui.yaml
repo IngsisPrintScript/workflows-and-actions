@@ -4,12 +4,15 @@ on:
   workflow_call:
     inputs:
       environment:
+        description: "deployment environment (development | production)"
         required: true
         type: string
       service_name:
+        description: "docker-compose service name"
         required: true
         type: string
       image_route:
+        description: "full image name (ghcr.io/...)"
         required: true
         type: string
     secrets:
@@ -23,6 +26,10 @@ on:
         required: true
       SSH_USER:
         required: true
+      GHCR_USER:
+        required: true
+      GHCR_TOKEN:
+        required: true
 
 jobs:
   build-and-push:
@@ -34,27 +41,34 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Login to GHCR (runner)
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | \
-          docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo "${{ secrets.GHCR_TOKEN }}" | \
+            docker login ghcr.io -u ${{ secrets.GHCR_USER }} --password-stdin
 
       - name: Build UI Docker image
-        run: docker build -t ${{ inputs.image_route }} .
+        run: |
+          docker build -t ${{ inputs.image_route }} .
 
       - name: Push UI Docker image
-        run: docker push ${{ inputs.image_route }}
+        run: |
+          docker push ${{ inputs.image_route }}
 
       - name: Set deploy variables (dev / prod)
         id: set-deploy-vars
         run: |
           if [ "${{ inputs.environment }}" = "production" ]; then
-            echo "target_ip=${{ secrets.IP_PROD }}" >> $GITHUB_OUTPUT
+            echo "target_ip=${{ secrets.IP_PROD }}" >> "$GITHUB_OUTPUT"
           else
-            echo "target_ip=${{ secrets.IP_DEV }}" >> $GITHUB_OUTPUT
+            echo "target_ip=${{ secrets.IP_DEV }}" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Debug target IP
+        run: |
+          echo "Resolved TARGET_IP=${{ steps.set-deploy-vars.outputs.target_ip }}"
 
   deployment:
     name: Deploy UI to VM
@@ -79,6 +93,11 @@ jobs:
           TARGET_IP: ${{ needs.build-and-push.outputs.target_ip }}
           ENVIRONMENT: ${{ inputs.environment }}
         run: |
+          if [ -z "$TARGET_IP" ]; then
+            echo "❌ TARGET_IP is empty"
+            exit 1
+          fi
+
           COMPOSE_FILE="docker-compose.dev.yml"
           if [ "$ENVIRONMENT" = "production" ]; then
             COMPOSE_FILE="docker-compose.prod.yml"
