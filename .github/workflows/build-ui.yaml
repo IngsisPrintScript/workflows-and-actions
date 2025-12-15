@@ -6,6 +6,18 @@ on:
       image-name:
         required: true
         type: string
+      image-tag:
+        required: true
+        type: string
+      compose-service:
+        required: true
+        type: string
+      compose-file:
+        required: true
+        type: string
+      server-path:
+        required: true
+        type: string
 
 jobs:
   build-and-push:
@@ -33,11 +45,11 @@ jobs:
             --build-arg VITE_AUTH0_CALLBACK_URL=${{ secrets.VITE_AUTH0_CALLBACK_URL }} \
             --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
             --build-arg VITE_API_USER_BASE_URL=${{ secrets.VITE_API_USER_BASE_URL }} \
-            -t ghcr.io/ingsisprintscript/${{ inputs.image-name }}:dev . 
+            -t ghcr.io/ingsisprintscript/${{ inputs.image-name }}:${{ inputs.image-tag }} .
 
       - name: Push Docker Image
         run: |
-          docker push ghcr.io/ingsisprintscript/${{ inputs.image-name }}:dev
+          docker push ghcr.io/ingsisprintscript/${{ inputs.image-name }}:${{ inputs.image-tag }}
 
       - name: Deploy on server
         uses: appleboy/ssh-action@v0.1.7
@@ -46,6 +58,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /home/MackyAlimena/infra-ingsis
-            docker pull ghcr.io/ingsisprintscript/printscript-ui:dev
-            docker compose -f docker-compose.dev.yml up -d ui
+            cd ${{ inputs.server-path }}
+            docker pull ghcr.io/ingsisprintscript/${{ inputs.image-name }}:${{ inputs.image-tag }}
+            docker compose -f ${{ inputs.compose-file }} up -d ${{ inputs.compose-service }}
