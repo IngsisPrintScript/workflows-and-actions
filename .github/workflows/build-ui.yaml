@@ -27,19 +27,29 @@ on:
         required: true
       GHCR_TOKEN:
         required: true
+
+      # Auth0 (comunes)
       VITE_AUTH0_DOMAIN:
         required: true
       VITE_AUTH0_CLIENT_ID:
         required: true
       VITE_AUTH0_AUDIENCE:
         required: true
-      VITE_AUTH0_CALLBACK_URL_DEV:
+
+      # Auth0 callback
+      VITE_AUTH0_CALLBACK_URL:
         required: true
       VITE_AUTH0_CALLBACK_URL_PROD:
         required: true
-      VITE_API_BASE_URL:
+
+      # Backend URLs
+      VITE_BACKEND_URL:
         required: true
-      VITE_API_USER_BASE_URL_DEV:
+      VITE_BACKEND_URL_PROD:
+        required: true
+
+      # User/Auth API URLs
+      VITE_API_USER_BASE_URL:
         required: true
       VITE_API_USER_BASE_URL_PROD:
         required: true
@@ -62,12 +72,12 @@ jobs:
       - name: Build UI Docker image
         run: |
           if [ "${{ inputs.environment }}" = "production" ]; then
+            API_BASE_URL="${{ secrets.VITE_BACKEND_URL_PROD }}"
             API_USER_BASE_URL="${{ secrets.VITE_API_USER_BASE_URL_PROD }}"
-            BACKEND_URL="${{ secrets.VITE_BACKEND_URL }}"
             AUTH0_CALLBACK_URL="${{ secrets.VITE_AUTH0_CALLBACK_URL_PROD }}"
           else
+            API_BASE_URL="${{ secrets.VITE_BACKEND_URL }}"
             API_USER_BASE_URL="${{ secrets.VITE_API_USER_BASE_URL }}"
-            BACKEND_URL="${{ secrets.VITE_BACKEND_URL_PROD }}"
             AUTH0_CALLBACK_URL="${{ secrets.VITE_AUTH0_CALLBACK_URL }}"
           fi
 
@@ -76,7 +86,7 @@ jobs:
             --build-arg VITE_AUTH0_CLIENT_ID=${{ secrets.VITE_AUTH0_CLIENT_ID }} \
             --build-arg VITE_AUTH0_AUDIENCE=${{ secrets.VITE_AUTH0_AUDIENCE }} \
             --build-arg VITE_AUTH0_CALLBACK_URL="$AUTH0_CALLBACK_URL" \
-            --build-arg VITE_API_BASE_URL="$BACKEND_URL" \
+            --build-arg VITE_API_BASE_URL="$API_BASE_URL" \
             --build-arg VITE_API_USER_BASE_URL="$API_USER_BASE_URL" \
             -t ${{ inputs.image_route }} .
 
