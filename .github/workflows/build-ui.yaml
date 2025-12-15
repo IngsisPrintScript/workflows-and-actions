@@ -33,7 +33,9 @@ on:
         required: true
       VITE_AUTH0_AUDIENCE:
         required: true
-      VITE_AUTH0_CALLBACK_URL:
+      VITE_AUTH0_CALLBACK_URL_DEV:
+        required: true
+      VITE_AUTH0_CALLBACK_URL_PROD:
         required: true
       VITE_API_BASE_URL:
         required: true
@@ -61,16 +63,20 @@ jobs:
         run: |
           if [ "${{ inputs.environment }}" = "production" ]; then
             API_USER_BASE_URL="${{ secrets.VITE_API_USER_BASE_URL_PROD }}"
+            BACKEND_URL="${{ secrets.VITE_BACKEND_URL }}"
+            AUTH0_CALLBACK_URL="${{ secrets.VITE_AUTH0_CALLBACK_URL_PROD }}"
           else
-            API_USER_BASE_URL="${{ secrets.VITE_API_USER_BASE_URL_DEV }}"
+            API_USER_BASE_URL="${{ secrets.VITE_API_USER_BASE_URL }}"
+            BACKEND_URL="${{ secrets.VITE_BACKEND_URL_PROD }}"
+            AUTH0_CALLBACK_URL="${{ secrets.VITE_AUTH0_CALLBACK_URL }}"
           fi
 
           docker build \
             --build-arg VITE_AUTH0_DOMAIN=${{ secrets.VITE_AUTH0_DOMAIN }} \
             --build-arg VITE_AUTH0_CLIENT_ID=${{ secrets.VITE_AUTH0_CLIENT_ID }} \
             --build-arg VITE_AUTH0_AUDIENCE=${{ secrets.VITE_AUTH0_AUDIENCE }} \
-            --build-arg VITE_AUTH0_CALLBACK_URL=${{ secrets.VITE_AUTH0_CALLBACK_URL }} \
-            --build-arg VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }} \
+            --build-arg VITE_AUTH0_CALLBACK_URL="$AUTH0_CALLBACK_URL" \
+            --build-arg VITE_API_BASE_URL="$BACKEND_URL" \
             --build-arg VITE_API_USER_BASE_URL="$API_USER_BASE_URL" \
             -t ${{ inputs.image_route }} .
 
@@ -78,7 +84,6 @@ jobs:
         run: docker push ${{ inputs.image_route }}
 
   deployment:
-    name: Deploy UI to VM
     runs-on: ubuntu-latest
     needs: build-and-push
 
@@ -104,8 +109,6 @@ jobs:
             TARGET_IP="${{ secrets.IP_DEV }}"
             COMPOSE_FILE="docker-compose.dev.yml"
           fi
-
-          echo "Deploying to $TARGET_IP using $COMPOSE_FILE"
 
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SSH_USER }}@$TARGET_IP <<EOF
