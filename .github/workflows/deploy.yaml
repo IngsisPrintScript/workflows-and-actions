@@ -132,6 +132,19 @@ jobs:
             exit 0
           fi
 
+          echo "Debug: needs.build-and-publish.outputs.target_ip='${{ needs.build-and-publish.outputs.target_ip }}'"
+          echo "Debug: env TARGET_IP='$TARGET_IP'"
+
+          if [ -z "$TARGET_IP" ]; then
+            echo "TARGET_IP empty — falling back to secrets based on environment"
+            if [ "${ENVIRONMENT}" = "production" ]; then
+              TARGET_IP="${{ secrets.IP_PROD }}"
+            else
+              TARGET_IP="${{ secrets.IP_DEV }}"
+            fi
+            echo "Fallback used (masked): ${TARGET_IP%.*}.*"
+          fi
+
           IP_ADDRESS="$TARGET_IP"
 
           echo "Target IP (masked): ${IP_ADDRESS%.*}.*"
@@ -155,7 +168,7 @@ jobs:
             COMPOSE_FILE="docker-compose.prod.yml"
           fi
 
-          echo 
+          
           echo "SSH command: ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@$IP_ADDRESS"
           ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@$IP_ADDRESS <<EOF
             set -e
