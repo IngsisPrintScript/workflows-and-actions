@@ -4,15 +4,12 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: "deployment environment (development | production)"
         required: true
         type: string
       service_name:
-        description: "docker-compose service name"
         required: true
         type: string
       image_route:
-        description: "full docker image (ghcr.io/...)"
         required: true
         type: string
 
@@ -26,21 +23,18 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Login to GHCR
+      - name: Login to GHCR (runner)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | \
           docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build UI Docker image
-        run: |
-          docker build -t ${{ inputs.image_route }} .
+        run: docker build -t ${{ inputs.image_route }} .
 
       - name: Push UI Docker image
-        run: |
-          docker push ${{ inputs.image_route }}
+        run: docker push ${{ inputs.image_route }}
 
       - name: Set deploy variables (dev / prod)
         id: set-deploy-vars
@@ -79,12 +73,14 @@ jobs:
             COMPOSE_FILE="docker-compose.prod.yml"
           fi
 
+          echo "Deploying to $TARGET_IP using $COMPOSE_FILE"
+
           ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.USER }}@$TARGET_IP <<EOF
+            ${{ secrets.SSH_USER }}@$TARGET_IP <<EOF
               set -e
               cd infra-ingsis
-              echo "${{ secrets.GITHUB_TOKEN }}" | \
-                docker login ghcr.io -u ${{ github.actor }} --password-stdin
+              echo "${{ secrets.GHCR_TOKEN }}" | \
+                docker login ghcr.io -u ${{ secrets.GHCR_USER }} --password-stdin
               docker pull ${{ inputs.image_route }}
               docker compose -f ${COMPOSE_FILE} up -d ${{ inputs.service_name }}
           EOF
