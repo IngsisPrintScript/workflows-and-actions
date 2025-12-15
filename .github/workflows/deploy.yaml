@@ -53,7 +53,7 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image (optional)
+      - name: Build and push Docker image
         if: ${{ always() }}
         run: |
           echo "Prepare Docker image push"
@@ -82,20 +82,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
-      - name: Debug secrets (build)
-        if: ${{ always() }}
-        run: |
-          echo "Debugging secrets presence (build-and-publish)"
-          if [ -z "${{ secrets.AZURE_CREDENTIALS_PROD }}" ]; then echo "AZURE_CREDENTIALS_PROD = NOT SET"; else echo "AZURE_CREDENTIALS_PROD = SET"; fi
-          if [ -z "${{ secrets.AZURE_CREDENTIALS_DEV }}" ]; then echo "AZURE_CREDENTIALS_DEV = NOT SET"; else echo "AZURE_CREDENTIALS_DEV = SET"; fi
-          if [ -z "${{ secrets.AZURE_RESOURCE_GROUP }}" ]; then echo "AZURE_RESOURCE_GROUP = NOT SET"; else echo "AZURE_RESOURCE_GROUP = SET"; fi
-          if [ -z "${{ secrets.AZURE_VM_NAME_PROD }}" ]; then echo "AZURE_VM_NAME_PROD = NOT SET"; else echo "AZURE_VM_NAME_PROD = SET"; fi
-          if [ -z "${{ secrets.AZURE_VM_NAME_DEV }}" ]; then echo "AZURE_VM_NAME_DEV = NOT SET"; else echo "AZURE_VM_NAME_DEV = SET"; fi
-          if [ -z "${{ secrets.IP_PROD }}" ]; then echo "IP_PROD = NOT SET"; else echo "IP_PROD = SET"; fi
-          if [ -z "${{ secrets.IP_DEV }}" ]; then echo "IP_DEV = NOT SET"; else echo "IP_DEV = SET"; fi
-          if [ -n "${{ secrets.IP_PROD }}" ]; then ip="${{ secrets.IP_PROD }}"; echo "IP_PROD masked: ${ip%.*}.*"; fi
-          if [ -n "${{ secrets.IP_DEV }}" ]; then ip="${{ secrets.IP_DEV }}"; echo "IP_DEV masked: ${ip%.*}.*"; fi
-            
+
       - name: Set deploy variables (prod/dev)
         id: set-deploy-vars
         run: |
@@ -108,6 +95,7 @@ jobs:
             echo "azure_vm=${{ secrets.AZURE_VM_NAME_DEV }}" >> $GITHUB_OUTPUT
             echo "target_ip=${{ secrets.IP_DEV }}" >> $GITHUB_OUTPUT
           fi
+
       - name: Encender la Máquina Virtual
         run: |
           az vm start --resource-group "${{ steps.set-deploy-vars.outputs.azure_rg }}" --name "${{ steps.set-deploy-vars.outputs.azure_vm }}" || true
@@ -121,15 +109,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Debug secrets (deploy)
-        if: ${{ always() }}
-        run: |
-          echo "Debugging secrets presence (deployment)"
-          if [ -z "${{ secrets.PRIVATE_KEY_PROD }}" ]; then echo "PRIVATE_KEY_PROD = NOT SET"; else echo "PRIVATE_KEY_PROD = SET"; fi
-          if [ -z "${{ secrets.PRIVATE_KEY_DEV }}" ]; then echo "PRIVATE_KEY_DEV = NOT SET"; else echo "PRIVATE_KEY_DEV = SET"; fi
-          if [ -z "${{ secrets.USER }}" ]; then echo "USER = NOT SET"; else echo "USER = SET"; fi
-          if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then echo "GITHUB_TOKEN = NOT SET"; else echo "GITHUB_TOKEN = SET"; fi
-          if [ -n "${{ needs.build-and-publish.outputs.target_ip }}" ]; then ip="${{ needs.build-and-publish.outputs.target_ip }}"; echo "target_ip masked: ${ip%.*}.*"; fi
       - name: Add SSH key (production)
         if: ${{ inputs.environment == 'production' }}
         uses: webfactory/ssh-agent@v0.5.3
@@ -152,22 +131,15 @@ jobs:
             exit 0
           fi
 
-          echo "Debug: needs.build-and-publish.outputs.target_ip='${{ needs.build-and-publish.outputs.target_ip }}'"
-          echo "Debug: env TARGET_IP='$TARGET_IP'"
-
           if [ -z "$TARGET_IP" ]; then
-            echo "TARGET_IP empty — falling back to secrets based on environment"
             if [ "${ENVIRONMENT}" = "production" ]; then
               TARGET_IP="${{ secrets.IP_PROD }}"
             else
               TARGET_IP="${{ secrets.IP_DEV }}"
             fi
-            echo "Fallback used (masked): ${TARGET_IP%.*}.*"
           fi
 
           IP_ADDRESS="$TARGET_IP"
-
-          echo "Target IP (masked): ${IP_ADDRESS%.*}.*"
 
           echo "Waiting for the VM to enable the port 22..."
           for i in {1..30}; do
@@ -189,7 +161,6 @@ jobs:
           fi
 
           
-          echo "SSH command: ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@$IP_ADDRESS"
           ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@$IP_ADDRESS <<EOF
             set -e
             echo "Entering infra directory"
