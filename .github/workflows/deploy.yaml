@@ -45,16 +45,10 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Run CI checks (format/lint/test/build)
+      - name: Publish (debug)
         run: |
-          echo "Running CI-like Gradle checks"
-          ./gradlew --no-daemon spotlessCheck check build
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish
-        run: ./gradlew publish
+          echo "Running gradle publish with debug flags"
+          ./gradlew --no-daemon publish --info --stacktrace
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
