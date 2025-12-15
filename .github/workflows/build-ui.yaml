@@ -3,6 +3,9 @@ name: Build & Push UI Image
 on:
   workflow_call:
     inputs:
+      environment:
+        required: true
+        type: string
       image-name:
         required: true
         type: string
@@ -18,7 +21,6 @@ on:
       server-path:
         required: true
         type: string
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
