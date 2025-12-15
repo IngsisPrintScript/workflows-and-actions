@@ -12,6 +12,19 @@ on:
       image_route:
         required: true
         type: string
+    secrets:
+      IP_DEV:
+        required: true
+      IP_PROD:
+        required: true
+      PRIVATE_KEY_DEV:
+        required: true
+      PRIVATE_KEY_PROD:
+        required: true
+      USER:
+        required: true
+      GITHUB_TOKEN:
+        required: true
 
 jobs:
   build-and-push:
