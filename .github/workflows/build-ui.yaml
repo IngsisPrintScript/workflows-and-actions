@@ -58,15 +58,9 @@ jobs:
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ inputs.environment == 'prod' && secrets.SERVER_SSH_KEY_PROD || secrets.SERVER_SSH_KEY }}
+          key: ${{ inputs.environment == 'production' && secrets.SERVER_SSH_KEY_PROD || secrets.SERVER_SSH_KEY }}
           script: |
             cd ${{ inputs.server-path }}
-      
-            if [ "${{ inputs.environment }}" = "prod" ]; then
-              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USER }} --password-stdin
-            else
-              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USER }} --password-stdin
-            fi
-      
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USER }} --password-stdin
             docker pull ghcr.io/ingsisprintscript/${{ inputs.image-name }}:${{ inputs.image-tag }}
             docker compose -f ${{ inputs.compose-file }} up -d ${{ inputs.compose-service }}
