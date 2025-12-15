@@ -61,9 +61,9 @@ jobs:
             cd ${{ inputs.server-path }}
       
             if [ "${{ inputs.environment }}" = "prod" ]; then
-              echo "${{ secrets.GHCR_TOKEN_PROD }}" | docker login ghcr.io -u ${{ secrets.GHCR_USER_PROD }} --password-stdin
+              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USER }} --password-stdin
             else
-              echo "${{ secrets.GHCR_TOKEN_DEV }}" | docker login ghcr.io -u ${{ secrets.GHCR_USER_DEV }} --password-stdin
+              echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USER }} --password-stdin
             fi
       
             docker pull ghcr.io/ingsisprintscript/${{ inputs.image-name }}:${{ inputs.image-tag }}
