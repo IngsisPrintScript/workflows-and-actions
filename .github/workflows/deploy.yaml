@@ -74,18 +74,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Azure Login (production)
-        if: ${{ inputs.environment == 'production' }}
+      - name: Azure Login (production / development)
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
-
-      - name: Azure Login (development)
-        if: ${{ inputs.environment == 'development' }}
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
-
+          
       - name: Set deploy variables (prod/dev)
         id: set-deploy-vars
         run: |
