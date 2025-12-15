@@ -21,9 +21,7 @@ on:
         required: true
       PRIVATE_KEY_PROD:
         required: true
-      USER:
-        required: true
-      GITHUB_TOKEN:
+      SSH_USER:
         required: true
 
 jobs:
