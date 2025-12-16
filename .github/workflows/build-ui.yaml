@@ -79,12 +79,14 @@ jobs:
             API_BASE_URL="${{ secrets.VITE_BACKEND_URL_PROD }}"
             API_USER_BASE_URL="${{ secrets.VITE_API_USER_BASE_URL_PROD }}"
             AUTH0_CALLBACK_URL="${{ secrets.VITE_AUTH0_CALLBACK_URL_PROD }}"
+            API_PREFIX="${{ secrets.VITE_API_PREFIX_PROD }}"
           else
             API_BASE_URL="${{ secrets.VITE_BACKEND_URL }}"
             API_USER_BASE_URL="${{ secrets.VITE_API_USER_BASE_URL }}"
             AUTH0_CALLBACK_URL="${{ secrets.VITE_AUTH0_CALLBACK_URL }}"
+            API_PREFIX="${{ secrets.VITE_API_PREFIX }}"
           fi
-
+      
           docker build \
             --build-arg VITE_AUTH0_DOMAIN=${{ secrets.VITE_AUTH0_DOMAIN }} \
             --build-arg VITE_AUTH0_CLIENT_ID=${{ secrets.VITE_AUTH0_CLIENT_ID }} \
@@ -92,6 +94,7 @@ jobs:
             --build-arg VITE_AUTH0_CALLBACK_URL="$AUTH0_CALLBACK_URL" \
             --build-arg VITE_API_BASE_URL="$API_BASE_URL" \
             --build-arg VITE_API_USER_BASE_URL="$API_USER_BASE_URL" \
+            --build-arg VITE_API_PREFIX="$API_PREFIX" \
             -t ${{ inputs.image_route }} .
 
       - name: Push UI Docker image
